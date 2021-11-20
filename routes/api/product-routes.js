@@ -7,24 +7,36 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 router.get('/', (req, res) => {
   // find all products
   // be sure to include its associated Category and Tag data
+  try {
+    const data = await Product.findAll({
+      include: [{model: Category}, {model: Tag}],
+    });
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  };
 });
 
 // get one product
 router.get('/:id', (req, res) => {
   // find a single product by its `id`
   // be sure to include its associated Category and Tag data
+  try {
+    const data = await Product.findByPk(req.params.id, {
+      include: [{model: Category}, {model: Tag}],
+    });
+    if (!data) {
+      res.status(404).json({response: '[PRODUCT] WITH THAT [ID] NOT FOUND'});
+      return;
+    };
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  };
 });
 
 // create new product
 router.post('/', (req, res) => {
-  /* req.body should look like this...
-    {
-      product_name: "Basketball",
-      price: 200.00,
-      stock: 3,
-      tagIds: [1, 2, 3, 4]
-    }
-  */
   Product.create(req.body)
     .then((product) => {
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
@@ -91,6 +103,20 @@ router.put('/:id', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   // delete one product by its `id` value
+  try {
+    const data = await Product.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
+    if (!data) {
+      res.status(404).json({response: '[PRODUCT] WITH THAT [ID] NOT FOUND'});
+      return;
+    };
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  };
 });
 
 module.exports = router;
